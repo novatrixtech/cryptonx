@@ -1,2 +1,2 @@
 # cryptonx
-Crypto Lib to encrypt and decrypt messages
+Crypto is a lib in Go Language to encrypt and decrypt messages
