@@ -9,19 +9,20 @@ import (
 /*
 Encrypter Encrypts text based on AES Algorythim and return the encrypted text and his nonce
 */
-func Encrypter(key string, text string) (string, string, error) {
-
-	nonce := make([]byte, 12)
-	if _, erro := io.ReadFull(rand.Reader, nonce); erro != nil {
-		fmt.Printf("Erro ao gerar o nonce: [%s]\n", erro.Error())
-		return "", "", erro
+func Encrypter(key string, text string) (encryptedText string, nonce string, err error) {
+	err = nil
+	nonceTemp := make([]byte, 12)
+	if _, err = io.ReadFull(rand.Reader, nonceTemp); err != nil {
+		fmt.Printf("[Encrypter] Error during nonce generation: [%s]\n", err.Error())
+		return
 	}
 
-	aesgcm, erro := GetAEAD(key)
-	if erro != nil {
-		fmt.Printf("[Encrypter] Erro ao gerar o aesgcm: [%s]\n", erro.Error())
-		return "", "", erro
+	aesgcm, err := GetAEAD(key)
+	if err != nil {
+		fmt.Printf("[Encrypter] Error during AEAD generation: [%s]\n", err.Error())
+		return
 	}
-
-	return fmt.Sprintf("%x", aesgcm.Seal(nil, nonce, []byte(text), nil)), fmt.Sprintf("%x", nonce), nil
+	encryptedText = fmt.Sprintf("%x", aesgcm.Seal(nil, nonceTemp, []byte(text), nil))
+	nonce = fmt.Sprintf("%x", nonceTemp)
+	return
 }

@@ -8,8 +8,8 @@ import (
 /*
 Decrypter decripts text based on nonce and key
 */
-func Decrypter(key string, nonce string, text string) (string, error) {
-
+func Decrypter(key string, nonce string, text string) (decryptedText string, err error) {
+	err = nil
 	textocifrado, _ := hex.DecodeString(text)
 	nonceInterno, _ := hex.DecodeString(nonce)
 
@@ -18,18 +18,18 @@ func Decrypter(key string, nonce string, text string) (string, error) {
 	//fmt.Printf("[Decrypter] Nonce: [%v] \n", nonce)
 	//fmt.Printf("[Decrypter] nonceInterno: [%v] \n", nonceInterno)
 
-	aesgcm, erro := GetAEAD(key)
-	if erro != nil {
-		fmt.Printf("[Decrypter] Erro ao gerar o aesgcm: [%s]\n", erro.Error())
-		return "", erro
+	aesgcm, err := GetAEAD(key)
+	if err != nil {
+		fmt.Printf("[Decrypter] Error during aesgcm generation: [%s]\n", err.Error())
+		return
 	}
 
-	retorno, erro := aesgcm.Open(nil, nonceInterno, textocifrado, nil)
-	if erro != nil {
-		fmt.Printf("[Decrypter] Erro ao abrir o texto: [%s]\n", erro.Error())
-		return "", erro
+	retorno, err := aesgcm.Open(nil, nonceInterno, textocifrado, nil)
+	if err != nil {
+		fmt.Printf("[Decrypter] Error during opening text operation: [%s]\n", err.Error())
+		return
 	}
-
-	return fmt.Sprintf("%s", retorno), nil
+	decryptedText = fmt.Sprintf("%s", retorno)
+	return
 
 }
