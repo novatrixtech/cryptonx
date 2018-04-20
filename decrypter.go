@@ -1,8 +1,12 @@
 package cryptonx
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"log"
 )
 
 /*
@@ -31,5 +35,42 @@ func Decrypter(key string, nonce string, text string) (decryptedText string, err
 	}
 	decryptedText = fmt.Sprintf("%s", retorno)
 	return
+}
 
+//DecryptWithNonce it decrypts data and get the nonce from the encrypted data
+func DecryptWithNonce(cipherText string, key string) (plainText string, err error) {
+	err = nil
+	c, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		log.Printf("[DecryptWithNonce] Error during Cipher generation. Error: %s\n", err.Error())
+		return
+	}
+
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		log.Printf("[DecryptWithNonce] Error during GCM generation. Error: %s\n", err.Error())
+		return
+	}
+
+	tempCipherText, err := hex.DecodeString(cipherText)
+	if err != nil {
+		log.Printf("[DecryptWithNonce] Error during decoding cipherText string. Error: %s\n", err.Error())
+		return
+	}
+
+	nonceSize := gcm.NonceSize()
+	if len(tempCipherText) < nonceSize {
+		err = errors.New("ciphertext too short")
+		log.Printf("[DecryptWithNonce] Error checking nonceSize. Error: %s\n", err.Error())
+		return
+	}
+
+	nonce, tempCipherText := tempCipherText[:nonceSize], tempCipherText[nonceSize:]
+	bytesPlainText, err := gcm.Open(nil, nonce, tempCipherText, nil)
+	if err != nil {
+		log.Printf("[DecryptWithNonce] Error during opening encrypted text. Error: %s\n", err.Error())
+		return
+	}
+	plainText = string(bytesPlainText)
+	return
 }
